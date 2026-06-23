@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JARVIS AI Assistant</title>
+    <style>
+        body {
+            background-color: #0a0f1d;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            color: #00f0ff;
+            letter-spacing: 5px;
+            margin: 0;
+            text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+        }
+
+        /* Geometric Robot Design */
+        .robot-container {
+            width: 200px;
+            height: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .robot-head {
+            width: 80px;
+            height: 70px;
+            background: #e0e6ed;
+            border-radius: 15px;
+            position: relative;
+            border: 4px solid #1f2d3d;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 10px;
+            box-sizing: border-box;
+            transition: transform 0.3s;
+        }
+
+        .eye {
+            width: 15px;
+            height: 15px;
+            background: #00f0ff;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #00f0ff;
+        }
+
+        .robot-neck {
+            width: 20px;
+            height: 15px;
+            background: #8492a6;
+        }
+
+        .robot-body {
+            width: 120px;
+            height: 130px;
+            background: #e0e6ed;
+            border-radius: 20px;
+            border: 4px solid #1f2d3d;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .power-core {
+            width: 40px;
+            height: 40px;
+            background: #00f0ff;
+            border-radius: 50%;
+            box-shadow: 0 0 15px #00f0ff;
+            transition: all 0.3s;
+        }
+
+        /* Animations based on state */
+        .listening .eye {
+            animation: blink 1s infinite alternate;
+        }
+
+        .listening .power-core {
+            animation: pulse 1s infinite alternate;
+        }
+
+        .speaking .robot-body, .speaking .robot-head {
+            animation: shake 0.2s infinite;
+        }
+
+        .speaking .power-core {
+            background: #ff007c;
+            box-shadow: 0 0 20px #ff007c;
+        }
+
+        @keyframes blink {
+            0% { transform: scaleY(1); }
+            100% { transform: scaleY(0.1); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 10px #00f0ff; }
+            100% { transform: scale(1.2); box-shadow: 0 0 25px #00f0ff; }
+        }
+
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            100% { transform: translate(-1px, -2px) rotate(1deg); }
+        }
+
+        /* Controls */
+        .controls-card {
+            background: rgba(31, 45, 61, 0.6);
+            border-radius: 15px;
+            padding: 20px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .api-input {
+            width: 80%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #8492a6;
+            background: #0a0f1d;
+            color: #fff;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .btn {
+            background: #00f0ff;
+            color: #0a0f1d;
+            border: none;
+            padding: 12px 25px;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-mic {
+            background: #1f2d3d;
+            color: #fff;
+            border: 2px solid #8492a6;
+        }
+
+        .btn-mic.active {
+            background: #ff007c;
+            border-color: #ff007c;
+            box-shadow: 0 0 15px #ff007c;
+        }
+
+        .status-text {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #8492a6;
+            min-height: 20px;
+        }
+
+        #transcript-box {
+            margin-top: 10px;
+            font-style: italic;
+            color: #00f0ff;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>JARVIS v2.5</h1>
+        <p id="system-status">SYSTEM STANDBY</p>
+    </div>
+
+    <div class="robot-container" id="robot">
+        <div class="robot-head">
+            <div class="eye"></div>
+            <div class="eye"></div>
+        </div>
+        <div class="robot-neck"></div>
+        <div class="robot-body">
+            <div class="power-core"></div>
+        </div>
+    </div>
+
+    <div class="controls-card">
+        <input type="password" id="api-key" class="api-input" placeholder="Enter Gemini API Key">
+        <br>
+        <button class="btn" id="init-btn" onclick="initCore()">INITIALIZE CORE</button>
+        <br><br>
+        <button class="btn btn-mic" id="mic-btn" disabled>TAP TO SPEAK</button>
+        <div class="status-text" id="status">Please enter API key and initialize.</div>
+        <div id="transcript-box"></div>
+    </div>
+
+    <script>
+        let apiKey = "";
+        let recognition;
+        let isListening = false;
+        const robot = document.getElementById('robot');
+        const statusText = document.getElementById('status');
+        const micBtn = document.getElementById('mic-btn');
+        const transcriptBox = document.getElementById('transcript-box');
+
+        // Speech Recognition Setup
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = () => {
+                isListening = true;
+                robot.className = "robot-container listening";
+                statusText.innerText = "Listening... Speak now.";
+                micBtn.classList.add('active');
+                micBtn.innerText = "TAP TO MUTO";
+            };
+
+            recognition.onend = () => {
+                isListening = false;
+                micBtn.classList.remove('active');
+                micBtn.innerText = "TAP TO SPEAK";
+                if(robot.className === "robot-container listening") {
+                    robot.className = "robot-container";
+                    statusText.innerText = "Processing...";
+                }
+            };
+
+            recognition.onresult = async (event) => {
+                const transcript = event.results[0][0].transcript;
+                transcriptBox.innerText = `You: "${transcript}"`;
+                
+                // Local Instant Override Check
+                const lowerText = transcript.toLowerCase();
+                if (lowerText.includes('features') || lowerText.includes('identity') || lowerText.includes('apne bare me') || lowerText.includes('kisne banaya')) {
+                    speakLocal("Lukman, someone is asking about my identity and features. May I disclose the details?");
+                    return;
+                }
+
+                // If not local, send to Gemini
+                await fetchGemini(transcript);
+            };
+
+            recognition.onerror = (err) => {
+                console.error(err);
+                statusText.innerText = "Speech error or timeout. Try again.";
+                robot.className = "robot-container";
+            };
+        } else {
+            statusText.innerText = "Speech recognition not supported in this browser.";
+        }
+
+        function initCore() {
+            apiKey = document.getElementById('api-key').value.trim();
+            if (!apiKey) {
+                alert("Please enter a valid Gemini API Key!");
+                return;
+            }
+            document.getElementById('system-status').innerText = "CORE ACTIVE";
+            statusText.innerText = "Core Ready. Tap the mic button to speak.";
+            micBtn.disabled = false;
+            speakLocal("Systems online. J.A.R.V.I.S is ready.");
+        }
+
+        // Tap to Talk toggle
+        micBtn.addEventListener('click', () => {
+            if (!recognition) return;
+            // Resume Audio Context for mobile safety
+            if (window.AudioContext || window.webkitAudioContext) {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                if(ctx.state === 'suspended') ctx.resume();
+            }
+            
+            if (isListening) {
+                recognition.stop();
+            } else {
+                window.speechSynthesis.cancel(); // Stop any current speech
+                recognition.start();
+            }
+        });
+
+        async function fetchGemini(text) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            
+            // Context system instructions directly embedded
+            const customPrompt = `You are JARVIS, an advanced AI assistant. If the user is identified as Lukman Ansari, behave with a touch of wit and playful roasting for incorrect answers, but treat a teacher or 'Sir' with absolute textbook respectful mode. Respond to this query concisely: ${text}`;
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: customPrompt }] }]
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.error) {
+                    if (data.error.message.includes('quota') || data.error.message.includes('Limit')) {
+                        speakLocal("System temporary rate-limited. Please use a fresh API key or wait a minute.");
+                    } else {
+                        speakLocal("Error connecting to terminal. Please check config.");
+                    }
+                    return;
+                }
+
+                const reply = data.candidates[0].content.parts[0].text;
+                speakLocal(reply);
+
+            } catch (error) {
+                console.error(error);
+                speakLocal("Network breakdown. Failed to reach core engine.");
+            }
+        }
+
+        function speakLocal(text) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            
+            utterance.onstart = () => {
+                robot.className = "robot-container speaking";
+                statusText.innerText = "JARVIS is responding...";
+            };
+
+            utterance.onend = () => {
+                robot.className = "robot-container";
+                statusText.innerText = "Standby... Tap mic to speak.";
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }
+    </script>
+</body>
+</html>
