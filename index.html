@@ -3,186 +3,212 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CYBER DEFENSE TERMINAL v4.0</title>
+    <title>Nexus Smart Assistant & Operations Dashboard</title>
     <style>
-        body {
-            background-color: #050505;
-            color: #00ff66;
-            font-family: 'Courier New', Courier, monospace;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            overflow: hidden;
-        }
-        .terminal-box {
-            width: 90%;
-            max-width: 700px;
-            background-color: rgba(10, 15, 10, 0.9);
-            border: 2px solid #00ff66;
-            box-shadow: 0 0 20px rgba(0, 255, 102, 0.3);
-            border-radius: 8px;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-        .header {
-            border-bottom: 1px solid #00ff66;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            font-weight: bold;
-            font-size: 1.1rem;
-        }
-        .output-screen {
-            height: 300px;
-            overflow-y: auto;
-            margin-bottom: 20px;
-            padding: 10px;
-            background-color: #000;
-            border-radius: 4px;
-            border: 1px solid rgba(0, 255, 102, 0.3);
-        }
-        .line {
-            margin-bottom: 8px;
-            line-height: 1.4;
-            opacity: 0;
-            animation: fadeIn 0.3s forwards;
-        }
-        @keyframes fadeIn {
-            to { opacity: 1; }
-        }
-        .accent { color: #58a6ff; }
-        .danger { color: #ff3333; }
-        .warning { color: #ffcc00; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #0b0f19; color: #f0f6fc; padding: 20px; min-height: 100vh; }
+        .dashboard { max-width: 1000px; margin: 0 auto; background: #121826; border: 1px solid #1f293d; border-radius: 12px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         
-        .btn-panel {
-            display: flex;
-            gap: 15px;
-        }
-        .action-btn {
-            flex: 1;
-            background-color: transparent;
-            color: #00ff66;
-            border: 1px solid #00ff66;
-            padding: 12px;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            border-radius: 4px;
-            text-transform: uppercase;
-            transition: all 0.2s ease;
-        }
-        .action-btn:hover {
-            background-color: #00ff66;
-            color: #000;
-            box-shadow: 0 0 15px rgba(0, 255, 102, 0.6);
-        }
-        .action-btn:disabled {
-            border-color: #333;
-            color: #333;
-            cursor: not-allowed;
-            box-shadow: none;
-        }
+        /* Header */
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1f293d; padding-bottom: 20px; margin-bottom: 25px; }
+        .header h1 { font-size: 1.6rem; color: #58a6ff; letter-spacing: 0.5px; }
+        .assistant-status { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; background: #1c2333; padding: 6px 12px; border-radius: 20px; border: 1px solid #2d384e; }
+        .pulse-dot { width: 8px; height: 8px; background-color: #2ea043; border-radius: 50%; box-shadow: 0 0 8px #2ea043; animation: pulse 1.5s infinite alternate; }
+        
+        /* Metrics Grid */
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .metric-card { background: #161f30; border: 1px solid #212c42; border-radius: 8px; padding: 20px; text-align: center; position: relative; }
+        .metric-card h3 { font-size: 0.85rem; text-transform: uppercase; color: #8b949e; margin-bottom: 10px; letter-spacing: 0.5px; }
+        .metric-value { font-size: 1.8rem; font-weight: bold; color: #f0f6fc; }
+        .progress-bar-container { background: #212c42; height: 6px; border-radius: 3px; margin-top: 12px; overflow: hidden; }
+        .progress-bar { background: #58a6ff; height: 100%; width: 0%; transition: width 0.4s ease; }
+
+        /* Main Workspace split */
+        .workspace { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+        @media (max-width: 768px) { .workspace { grid-template-columns: 1fr; } }
+        
+        /* Forms & Inputs */
+        .panel-title { font-size: 1rem; font-weight: 600; margin-bottom: 15px; color: #c9d1d9; border-left: 3px solid #58a6ff; padding-left: 10px; }
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; font-size: 0.85rem; color: #8b949e; margin-bottom: 6px; }
+        .form-control { width: 100%; background: #0b0f19; border: 1px solid #2d384e; border-radius: 6px; padding: 10px 12px; color: #f0f6fc; font-size: 0.95rem; outline: none; }
+        .form-control:focus { border-color: #58a6ff; }
+        
+        /* Buttons */
+        .btn { width: 100%; background: #238636; color: #ffffff; border: none; border-radius: 6px; padding: 12px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+        .btn:hover { background: #2ea043; }
+        
+        /* Task List rendering */
+        .task-list { max-height: 320px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .task-item { background: #161f30; border-left: 4px solid #ffa657; border-top: 1px solid #212c42; border-right: 1px solid #212c42; border-bottom: 1px solid #212c42; padding: 12px 15px; border-radius: 0 6px 6px 0; display: flex; justify-content: space-between; align-items: center; }
+        .task-item.high { border-left-color: #f85149; }
+        .task-item.low { border-left-color: #58a6ff; }
+        .task-item.completed { border-left-color: #2ea043; opacity: 0.6; }
+        .task-info h4 { font-size: 0.95rem; margin-bottom: 4px; }
+        .task-info p { font-size: 0.8rem; color: #8b949e; }
+        .action-checkbox { width: 18px; height: 18px; cursor: pointer; accent-color: #2ea043; }
+        
+        @keyframes pulse { from { opacity: 0.5; } to { opacity: 1; } }
     </style>
 </head>
 <body>
 
-    <div class="terminal-box">
+    <div class="dashboard">
+        <!-- Dashboard Top Header Bar -->
         <div class="header">
-            <span>⚡ CORE_SYSTEM_v4.0</span>
-            <<span>STATUS: ONLINE</span>
+            <h1>📊 NEXUS OPERATIONAL CONTROL</h1>
+            <div class="assistant-status">
+                <div class="pulse-dot"></div>
+                <span>ASSISTANT CORE: ACTIVE</span>
+            </div>
         </div>
 
-        <div class="output-screen" id="terminal-output">
-            <div class="line">[INFO] System initialized successfully.</div>
-            <div class="line">[INFO] Ready for security scan simulation...</div>
+        <!-- Real-Time Metrics Row -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <h3>Total Active Tasks</h3>
+                <div class="metric-value" id="count-total">0</div>
+            </div>
+            <div class="metric-card">
+                <h3>Pending Operations</h3>
+                <div class="metric-value" id="count-pending" style="color: #ff3366;">0</div>
+            </div>
+            <div class="metric-card">
+                <h3>Productivity Score</h3>
+                <div class="metric-value" id="productivity-pct">0%</div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="score-bar"></div>
+                </div>
+            </div>
         </div>
 
-        <div class="btn-panel">
-            <button class="action-btn" id="scan-btn" onclick="startScan()">Run Core Scan</button>
-            <button class="action-btn danger" id="bypass-btn" onclick="startBypass()" style="border-color: #ff3333; color: #ff3333;">Bypass Firewall</button>
+        <!-- Working Panels Divided Section -->
+        <div class="workspace">
+            <!-- Left Side: Task Allocation Console -->
+            <div class="panel">
+                <div class="panel-title">Operations Console</div>
+                
+                <div class="input-group">
+                    <label for="task-title">Task / Operation Description</label>
+                    <input type="text" id="task-title" class="form-control" placeholder="e.g., Prepare Presentation Final Draft">
+                </div>
+
+                <div class="input-group">
+                    <label for="task-priority">Priority Level Allocation</label>
+                    <select id="task-priority" class="form-control">
+                        <option value="high">High Priority Critical</option>
+                        <option value="medium" selected>Medium Operational</option>
+                        <option value="low">Low Deferrable</option>
+                    </select>
+                </div>
+
+                <button class="btn" onclick="addNewTask()">Commit Operation</button>
+            </div>
+
+            <!-- Right Side: Live Task Array Monitor -->
+            <div class="panel">
+                <div class="panel-title">Real-Time Data Streams</div>
+                <div class="task-list" id="task-container">
+                    <!-- Dynamic tasks will load here from local storage -->
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        const output = document.getElementById('terminal-output');
-        const scanBtn = document.getElementById('scan-btn');
-        const bypassBtn = document.getElementById('bypass-btn');
+        // Array container initialized from Browser's Local Storage
+        let taskDatabase = JSON.parse(localStorage.getItem('nexus_tasks')) || [];
 
-        function printLine(text, type = '') {
-            const line = document.createElement('div');
-            line.className = `line ${type}`;
-            line.innerHTML = text;
-            output.appendChild(line);
-            output.scrollTop = output.scrollHeight;
-        }
-
-        function disableButtons(status) {
-            scanBtn.disabled = status;
-            bypassBtn.disabled = status;
-        }
-
-        // Voice Output (No API key needed, uses built-in browser voice)
         function speak(text) {
             window.speechSynthesis.cancel();
-            const speech = new SpeechSynthesisUtterance(text);
-            speech.lang = 'en-US';
-            window.speechSynthesis.speak(speech);
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            window.speechSynthesis.speak(utterance);
         }
 
-        function startScan() {
-            disableButtons(true);
-            output.innerHTML = '';
-            speak("Initiating system core diagnostics.");
+        function saveAndRefresh() {
+            localStorage.setItem('nexus_tasks', JSON.stringify(taskDatabase));
+            renderDashboard();
+        }
+
+        function addNewTask() {
+            const titleInput = document.getElementById('task-title');
+            const priorityInput = document.getElementById('task-priority');
             
-            let steps = [
-                { text: "⏳ Initializing Global Network Scanner...", delay: 0 },
-                { text: "🛰️ Connecting to localized secure nodes...", delay: 800 },
-                { text: "<span class='accent'>[OK] Connection established with Mainframe.</span>", delay: 1500 },
-                { text: "🔍 Scanning internal database structures...", delay: 2200 },
-                { text: "⚠️ <span class='warning'>WARNING: Minor memory leak detected in Sector 7.</span>", delay: 3000 },
-                { text: "🛡️ Deploying security patches...", delay: 3800 },
-                { text: "🟩 <span class='accent'>[SUCCESS] System integrity verified. 100% Secure.</span>", delay: 4600 }
-            ];
+            if (!titleInput.value.trim()) {
+                alert("Operation description cannot be empty!");
+                return;
+            }
 
-            steps.forEach(step => {
-                setTimeout(() => {
-                    printLine(step.text);
-                    if(step.text.includes('SUCCESS')) {
-                        speak("Scan complete. System secured.");
-                        disableButtons(false);
-                    }
-                }, step.delay);
+            const newTask = {
+                id: Date.now(),
+                title: titleInput.value.trim(),
+                priority: priorityInput.value,
+                completed: false,
+                timestamp: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+            };
+
+            taskDatabase.push(newTask);
+            speak(`Task committed to ${priorityInput.value} priority tier.`);
+            titleInput.value = ''; // Clear form data
+            saveAndRefresh();
+        }
+
+        function toggleTaskStatus(id) {
+            const task = taskDatabase.find(t => t.id === id);
+            if(task) {
+                task.completed = !task.completed;
+                if(task.completed) {
+                    speak("Operation finalized successfully.");
+                } else {
+                    speak("Operation reverted to pending queue.");
+                }
+                saveAndRefresh();
+            }
+        }
+
+        function renderDashboard() {
+            const container = document.getElementById('task-container');
+            container.innerHTML = '';
+
+            let total = taskDatabase.length;
+            let completed = taskDatabase.filter(t => t.completed).length;
+            let pending = total - completed;
+            let percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+            // Updating text elements inside dashboard cards
+            document.getElementById('count-total').innerText = total;
+            document.getElementById('count-pending').innerText = pending;
+            document.getElementById('productivity-pct').innerText = percentage + '%';
+            document.getElementById('score-bar').style.width = percentage + '%';
+
+            if(total === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:30px; color:#8b949e; font-size:0.9rem;">No active operations running. Dashboard clear.</div>';
+                return;
+            }
+
+            // Loop and render data blocks
+            taskDatabase.forEach(task => {
+                const item = document.createElement('div');
+                item.className = `task-item ${task.priority} ${task.completed ? 'completed' : ''}`;
+                
+                item.innerHTML = `
+                    <div class="task-info">
+                        <h4 style="${task.completed ? 'text-decoration: line-through; color: #8b949e;' : ''}">${task.title}</h4>
+                        <p>Tier: ${task.priority.toUpperCase()} | Allocated: ${task.timestamp}</p>
+                    </div>
+                    <div>
+                        <input type="checkbox" class="action-checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTaskStatus(${task.id})">
+                    </div>
+                `;
+                container.appendChild(item);
             });
         }
 
-        function startBypass() {
-            disableButtons(true);
-            output.innerHTML = '';
-            speak("Warning. Attempting to bypass firewall encryption.");
-
-            let steps = [
-                { text: "<span class='danger'>[ALERT] Overriding local firewall protocols...</span>", delay: 0 },
-                { text: "📡 Injecting packet strings into gateway...", delay: 700 },
-                { text: "🔑 Decrypting security handshake tokens...", delay: 1400 },
-                { text: "🧬 Cracking 256-bit AES encryption keys...", delay: 2100 },
-                { text: "💥 <span class='danger'>[CRITICAL] Firewalls offline! Accessing Core...</span>", delay: 2900 },
-                { text: "👑 <span class='accent'>ACCESS GRANTED. Welcome back, Admin.</span>", delay: 3800 }
-            ];
-
-            steps.forEach(step => {
-                setTimeout(() => {
-                    printLine(step.text);
-                    if(step.text.includes('GRANTED')) {
-                        speak("Access granted. Mainframe decrypted.");
-                        disableButtons(false);
-                    }
-                }, step.delay);
-            });
-        }
+        // Initialize display metrics right away on window load
+        window.onload = function() {
+            renderDashboard();
+        };
     </script>
 </body>
 </html>
