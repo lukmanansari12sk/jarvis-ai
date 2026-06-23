@@ -311,6 +311,7 @@
         async function fetchGemini(text) {
             const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
+
             
             // Context system instructions directly embedded
             const customPrompt = `You are JARVIS, an advanced AI assistant. If the user is identified as Lukman Ansari, behave with a touch of wit and playful roasting for incorrect answers, but treat a teacher or 'Sir' with absolute textbook respectful mode. Respond to this query concisely: ${text}`;
